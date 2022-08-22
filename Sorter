@@ -1,0 +1,270 @@
+import random
+import array
+from tkinter import *
+from tkinter import ttk
+
+
+def randomize(a):
+    for i in a:
+        num = random.randint(0, 100)
+        holder = a[i]
+        a[i] = a[num]
+        a[num] = holder
+
+    return a
+
+def reRandomize():
+    global data
+    for i in data:
+        num = random.randint(0, 100)
+        holder = data[i]
+        data[i] = data[num]
+        data[num] = holder
+
+    drawData(data, ['White' for x in range(len(data))])
+
+
+# function to create the data bars by creating a canvas in Tkinter
+def drawData(data, colorlist):
+    canvas.delete("all")
+    can_height = 380
+    can_width = 550
+    x_width = can_width / (len(data) + 1)
+    offset = 30
+    spacing = 10
+
+    # normalizing data for rescaling real-valued numeric data within the
+    # given range
+    normalized_data = [i / max(data) for i in data]
+
+    for i, height in enumerate(normalized_data):
+        # top left corner
+        x0 = i * x_width + offset + spacing
+        y0 = can_height - height * 340
+
+        # bottom right corner
+        x1 = ((i + 1) * x_width) + offset
+        y1 = can_height
+
+        # data bars are generated as Red colored vertical rectangles
+        canvas.create_rectangle(x0, y0, x1, y1, fill=colorlist[i])
+        canvas.create_text(x0 + 2, y0, anchor=SE, text=str(data[i]))
+    root.update_idletasks()
+
+
+def start_algorithm():
+    global data
+
+    if (select_alg.get() == 'Bubble Sort'):
+        bubble_sort(data)
+
+    elif (select_alg.get() == 'Insertion Sort'):
+        insertion_sort(data)
+
+    elif (select_alg.get() == 'Merge Sort'):
+        mergesort(data, 0, len(data) - 1)
+
+    elif (select_alg.get() == 'Quick Sort'):
+        quick_sort(data, 0, len(data) - 1, drawData)
+
+    # sorted elements generated with Green color
+    drawData(data, ['Green' for x in range(len(data))])
+
+
+a = array.array('i', (i for i in range(0, 101)))
+a = randomize(a)
+root = Tk()
+root.title("Sorting Visualizer")
+
+# maximum window size
+root.maxsize(900, 600)
+root.config(bg="White")
+data = a
+# creating main user interface frame and
+# basic layout by creating a frame
+Mainframe = Frame(root, width=600, height=200, bg="Grey")
+Mainframe.grid(row=0, column=0, padx=10, pady=5)
+
+canvas = Canvas(root, width=600, height=380, bg="Grey")
+canvas.grid(row=1, column=0, padx=10, pady=5)
+
+# creating Start Button to start the sorting visualization process
+Button(Mainframe, text="START", bg="Red", command=start_algorithm).grid(
+    row=1, column=3, padx=5, pady=5)
+
+# creating Start Button to start the sorting visualization process
+Button(Mainframe, text="Randomize", bg="Red", command=reRandomize).grid(
+    row=1, column=4, padx=5, pady=5)
+
+select_alg = StringVar()
+alg_comboBox = ttk.Combobox(Mainframe, textvariable=select_alg)
+alg_comboBox.grid(
+    row=1, column=1, padx=5, pady=5)
+alg_comboBox['values'] = ('Bubble Sort', 'Insertion Sort', 'Merge Sort', 'Quick Sort')
+alg_comboBox['state'] = 'readonly'
+alg_comboBox.set('Bubble Sort')
+
+drawData(data, ['White' for x in range(len(data))])
+
+
+# region sorting algorithms
+
+def bubble_sort(data):
+    n = len(data)
+
+    for i in range(n):
+        for j in range(0, n - i - 1):
+
+            if data[j] > data[j + 1]:
+                data[j], data[j + 1] = data[j + 1], data[j]
+
+                # if swapped then color becomes Green else stays Red
+                drawData(data, ['Green' if x == j +
+                                           1 else 'White' for x in range(len(data))])
+
+
+def insertion_sort(data):
+    # Loop from the second element of the array until
+    # the last element
+    for i in range(1, len(data)):
+        # This is the element we want to position in its
+        # correct place
+        key_item = data[i]
+
+        # Initialize the variable that will be used to
+        # find the correct position of the element referenced
+        # by `key_item`
+        j = i - 1
+
+        # Run through the list of items (the left
+        # portion of the array) and find the correct position
+        # of the element referenced by `key_item`. Do this only
+        # if `key_item` is smaller than its adjacent values.
+        while j >= 0 and data[j] > key_item:
+            # Shift the value one position to the left
+            # and reposition j to point to the next element
+            # (from right to left)
+            data[j + 1] = data[j]
+            j -= 1
+            # if swapped then color becomes Green else stays Red
+            drawData(data, ['Green' if x == j +
+                                       1 else 'White' for x in range(len(data))])
+
+        # When you finish shifting the elements, you can position
+        # `key_item` in its correct location
+        data[j + 1] = key_item
+
+    return data
+
+
+def mergesort(arr, left, right):
+    if left < right:
+        m = (left + right) // 2
+        mergesort(arr, left, m)
+        mergesort(arr, m + 1, right)
+
+        j = m + 1
+        if arr[m] <= arr[m + 1]:
+            return
+
+        while left <= m and j <= right:
+            drawData(arr, ['Green' if x == left or x ==
+                                      j else 'White' for x in range(len(data))])
+
+            if arr[left] <= arr[j]:
+                left += 1
+            else:
+                drawData(arr, ['Green' if x == left or x ==
+                                          j else 'White' for x in range(len(data))])
+
+                # array of colours where only the focused bars
+                # are displayed red since left >arr[j]
+                temp = arr[j]
+
+                # storing the smaller element in temp variable
+                i = j
+                while i != left:
+                    arr[i] = arr[i - 1]
+                    drawData(arr, ['Green' if x == i or x ==
+                                              j else 'White' for x in range(len(data))])
+                    i -= 1
+
+                # this while loop will shift all the elements one step
+                # to right to make the place empty for the temp variable
+                # upon reaching the desired location i.e. left, the
+                # temp value will be inserted into that location.
+                # this process is much like insertion sort
+                arr[left] = temp
+
+                drawData(arr, ['Green' if x == left or x ==
+                                          j else 'White' for x in range(len(data))])
+                left += 1
+                m += 1
+                j += 1
+
+
+# head  --> Starting index,
+# tail  --> Ending index
+def quick_sort(data, head, tail,
+               drawData):
+    if head < tail:
+        partitionIdx = partition(data, head,
+                                 tail, drawData)
+
+        # left partition
+        quick_sort(data, head, partitionIdx - 1,
+                   drawData)
+
+        # right partition
+        quick_sort(data, partitionIdx + 1,
+                   tail, drawData)
+
+
+# endregion
+
+# to implement divide and conquer
+def partition(data, head, tail, drawData):
+    border = head
+    pivot = data[tail]
+
+    drawData(data, getColorArray(len(data), head,
+                                 tail, border, border))
+
+    for j in range(head, tail):
+        if data[j] < pivot:
+            drawData(data, getColorArray(
+                len(data), head, tail, border, j, True))
+
+            data[border], data[j] = data[j], data[border]
+            border += 1
+
+        drawData(data, getColorArray(len(data), head,
+                                     tail, border, j))
+
+    # swapping pivot with border value
+    drawData(data, getColorArray(len(data), head,
+                                 tail, border, tail, True))
+
+    data[border], data[tail] = data[tail], data[border]
+
+    return border
+
+
+def getColorArray(dataLen, head, tail, border,
+                  currIdx, isSwaping=False):
+    colorArray = []
+    for i in range(dataLen):
+        # base coloring
+        colorArray.append('White')
+
+        if isSwaping:
+            if i == border or i == currIdx:
+                colorArray[i] = 'Green'
+
+    return colorArray
+
+
+root.mainloop()
+
+# if __name__ == '__main__':
+#    main()
